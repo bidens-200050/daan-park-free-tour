@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>大安森林公園本週導覽</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Noto Sans TC', 'PingFang TC', sans-serif;
+  background: #FAFAF8;
+  color: #212121;
+  font-size: 15px;
+  line-height: 1.7;
+  padding: 24px 16px 40px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1B5E20;
+  margin-bottom: 4px;
+}
+.subtitle {
+  font-size: 13px;
+  color: #757575;
+  margin-bottom: 24px;
+}
+
+.week-bar {
+  background: #E8F5E9;
+  border: 1px solid #A5D6A7;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 13px;
+  color: #2E7D32;
+  font-weight: 600;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.search-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  background: #1565C0;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-bottom: 24px;
+}
+.search-btn:hover { background: #0D47A1; }
+.search-btn:disabled { background: #90A4AE; cursor: not-allowed; }
+
+.spinner {
+  display: none;
+  width: 18px; height: 18px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+#result-area { display: none; }
+
+.section-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #757575;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #E0E0E0;
+  padding-bottom: 6px;
+}
+
+.tour-card {
+  background: white;
+  border: 1px solid #E0E0E0;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  border-left: 4px solid #1565C0;
+}
+.tour-card.green { border-left-color: #2E7D32; }
+.tour-card.orange { border-left-color: #E65100; }
+.tour-card.purple { border-left-color: #6A1B9A; }
+.tour-card.teal { border-left-color: #00695C; }
+
+.tour-org {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1565C0;
+  margin-bottom: 4px;
+}
+.tour-card.green .tour-org { color: #2E7D32; }
+.tour-card.orange .tour-org { color: #E65100; }
+.tour-card.purple .tour-org { color: #6A1B9A; }
+.tour-card.teal .tour-org { color: #00695C; }
+
+.tour-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #212121;
+  margin-bottom: 8px;
+}
+
+.tour-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.meta-tag {
+  font-size: 12px;
+  background: #F5F5F5;
+  border: 1px solid #E0E0E0;
+  border-radius: 4px;
+  padding: 2px 8px;
+  color: #555;
+}
+.meta-tag.date { background: #E3F2FD; border-color: #90CAF9; color: #1565C0; }
+.meta-tag.fee { background: #E8F5E9; border-color: #A5D6A7; color: #2E7D32; }
+.meta-tag.fee.paid { background: #FFF3E0; border-color: #FFCC80; color: #E65100; }
+
+.tour-note {
+  font-size: 13px;
+  color: #555;
+  margin-top: 6px;
+}
+
+.no-result {
+  background: #FFF8E1;
+  border: 1px solid #FFE082;
+  border-radius: 8px;
+  padding: 16px;
+  font-size: 14px;
+  color: #6D4C41;
+}
+
+.always-on {
+  margin-top: 28px;
+}
+.always-card {
+  background: #F3E5F5;
+  border: 1px solid #CE93D8;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+.always-card strong { color: #6A1B9A; }
+
+.raw-toggle {
+  margin-top: 20px;
+  font-size: 12px;
+  color: #90A4AE;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+#raw-box {
+  display: none;
+  margin-top: 10px;
+  background: #F5F5F5;
+  border: 1px solid #E0E0E0;
+  border-radius: 6px;
+  padding: 12px;
+  font-size: 12px;
+  color: #444;
+  white-space: pre-wrap;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.error-box {
+  background: #FFEBEE;
+  border: 1px solid #EF9A9A;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 13px;
+  color: #B71C1C;
+}
+
+footer {
+  margin-top: 32px;
+  font-size: 12px;
+  color: #BDBDBD;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+
+<h1>🌿 大安森林公園導覽查詢</h1>
+<p class="subtitle">每週一開啟，查詢本週與下週的生態導覽活動</p>
+
+<div class="week-bar">
+  📅 <span id="week-range">計算中...</span>
+</div>
+
+<button class="search-btn" id="search-btn" onclick="searchTours()">
+  <div class="spinner" id="spinner"></div>
+  <span id="btn-text">🔍 搜尋本週＋下週導覽活動</span>
+</button>
+
+<div id="result-area">
+  <div id="tour-results"></div>
+
+  <div class="always-on" id="always-section">
+    <div class="section-label">每週固定活動（無需查詢）</div>
+    <div class="always-card">
+      <strong>台北市野鳥學會</strong> — 賞鳥駐站解說<br>
+      每週日 13:30–16:30｜生態池畔賞鳥平台｜免費，無需報名
+    </div>
+    <div class="always-card">
+      <strong>台北鳥會 早鳥繞園</strong> — 公園環形賞鳥<br>
+      每週日 07:30–11:30｜捷運 2 號出口集合｜免費，無需報名
+    </div>
+  </div>
+
+  <div class="raw-toggle" onclick="toggleRaw()">▸ 查看 AI 原始回覆</div>
+  <div id="raw-box"></div>
+</div>
+
+<footer>資料由 AI 即時搜尋整理，活動詳情以各主辦單位公告為準</footer>
+
+<script>
+function getWeekRange() {
+  const now = new Date();
+  const day = now.getDay();
+  const mon = new Date(now);
+  mon.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+  const sun = new Date(mon);
+  sun.setDate(mon.getDate() + 6);
+  const nextMon = new Date(mon);
+  nextMon.setDate(mon.getDate() + 7);
+  const nextSun = new Date(mon);
+  nextSun.setDate(mon.getDate() + 13);
+  const fmt = d => `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+  return {
+    thisStart: fmt(mon), thisEnd: fmt(sun),
+    nextStart: fmt(nextMon), nextEnd: fmt(nextSun)
+  };
+}
+
+const { thisStart, thisEnd, nextStart, nextEnd } = getWeekRange();
+document.getElementById('week-range').textContent = `本週 ${thisStart}（一）至 ${thisEnd}（日）｜下週 ${nextStart}（一）至 ${nextEnd}（日）`;
+
+function toggleRaw() {
+  const box = document.getElementById('raw-box');
+  const toggle = document.querySelector('.raw-toggle');
+  if (box.style.display === 'none' || !box.style.display) {
+    box.style.display = 'block';
+    toggle.textContent = '▾ 收起原始回覆';
+  } else {
+    box.style.display = 'none';
+    toggle.textContent = '▸ 查看 AI 原始回覆';
+  }
+}
+
+const COLOR_MAP = {
+  '荒野': 'green',
+  '荒野保護協會': 'green',
+  '蝶會': 'orange',
+  '蝴蝶': 'orange',
+  '鳥會': 'teal',
+  '野鳥': 'teal',
+  '猛禽': 'teal',
+  '基金會': 'blue',
+  '之友': 'blue',
+  '蜻蜓': 'purple',
+  '兩棲': 'purple',
+  '螢火蟲': 'green',
+  '螢': 'green',
+};
+
+function getColor(org) {
+  for (const [k, v] of Object.entries(COLOR_MAP)) {
+    if (org && org.includes(k)) return v;
+  }
+  return 'blue';
+}
+
+function renderCards(tours, isNextWeek = false) {
+  if (!tours || tours.length === 0) {
+    return `<div class="no-result">
+      ${isNextWeek ? '下週' : '本週'}查無已公告的特定導覽場次。<br>
+      可參考下方「每週固定活動」，或至各機構官網確認最新場次。
+    </div>`;
+  }
+  return tours.map(t => {
+    const color = getColor(t.org || t.title);
+    const feeClass = (t.fee && t.fee.includes('免費')) ? 'fee' : 'fee paid';
+    return `<div class="tour-card ${color}">
+      <div class="tour-org">${t.org || '主辦單位'}</div>
+      <div class="tour-title">${t.title || '導覽活動'}</div>
+      <div class="tour-meta">
+        ${t.date ? `<span class="meta-tag date">📅 ${t.date}</span>` : ''}
+        ${t.time ? `<span class="meta-tag">🕐 ${t.time}</span>` : ''}
+        ${t.fee ? `<span class="meta-tag ${feeClass}">💰 ${t.fee}</span>` : ''}
+        ${t.signup ? `<span class="meta-tag">📝 ${t.signup}</span>` : ''}
+      </div>
+      ${t.note ? `<div class="tour-note">${t.note}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+async function searchTours() {
+  const btn = document.getElementById('search-btn');
+  const spinner = document.getElementById('spinner');
+  const btnText = document.getElementById('btn-text');
+  const resultArea = document.getElementById('result-area');
+  const tourResults = document.getElementById('tour-results');
+  const rawBox = document.getElementById('raw-box');
+
+  btn.disabled = true;
+  spinner.style.display = 'block';
+  btnText.textContent = '搜尋中，請稍候...';
+  resultArea.style.display = 'none';
+
+  const { thisStart, thisEnd, nextStart, nextEnd } = getWeekRange();
+
+  const searchPrompt = `請搜尋台北大安森林公園在以下兩週舉辦的生態導覽活動：
+- 本週：${thisStart} 至 ${thisEnd}
+- 下週：${nextStart} 至 ${nextEnd}
+
+搜尋這些來源：
+- 大安森林公園之友基金會 https://www.daanforestpark.org.tw
+- 荒野保護協會 https://www.sow.org.tw
+- 台北市野鳥學會 https://www.wbst.org.tw
+- 台灣蝴蝶保育學會 https://www.butterfly.org.tw
+- 台灣猛禽研究會 https://raptor.org.tw
+- 臺北市政府公園處螢火蟲季 https://parks.gov.taipei/firefly/index.php
+- 臺灣蜻蜓學會 https://www.odonatatw.com
+- 台灣兩棲類動物保育協會 https://www.froghome.org
+- 中華民國自然步道協會 https://www.naturetrail.org.tw
+- 台灣原生植物保育協會 https://www.taiwanplant.org.tw
+
+請用純文字列出找到的所有活動，每筆請標明是本週或下週，並包含：主辦單位、活動名稱、日期時間、費用、報名方式。若找不到特定場次就說找不到。`;
+
+  const formatPrompt = (rawInfo) => `根據以下搜尋結果，整理成 JSON。
+只輸出 JSON 物件，不要任何前後說明文字，不要 markdown code block。
+
+搜尋結果：
+${rawInfo}
+
+輸出格式：
+{"this_week":[{"org":"主辦單位","title":"活動名稱","date":"日期","time":"時間","fee":"費用","signup":"報名方式","note":"備註"}],"next_week":[]}
+
+本週活動放入 this_week，下週活動放入 next_week。若某週無活動則該陣列為空 []。`;
+
+  function extractJSON(text) {
+    const clean = text.replace(/```json|```/g, '').trim();
+    let depth = 0, start = -1;
+    for (let i = 0; i < clean.length; i++) {
+      if (clean[i] === '{') { if (depth === 0) start = i; depth++; }
+      else if (clean[i] === '}') {
+        depth--;
+        if (depth === 0 && start !== -1) {
+          try { return JSON.parse(clean.slice(start, i + 1)); } catch(e) {}
+          start = -1;
+        }
+      }
+    }
+    return null;
+  }
+
+  try {
+    btnText.textContent = '第一步：搜尋活動資訊...';
+    const r1 = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1500,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        messages: [{ role: 'user', content: searchPrompt }]
+      })
+    });
+    const d1 = await r1.json();
+    const rawInfo = (d1.content || [])
+      .filter(b => b.type === 'text').map(b => b.text).join('\n');
+
+    btnText.textContent = '第二步：整理資料格式...';
+    const r2 = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: formatPrompt(rawInfo) }]
+      })
+    });
+    const d2 = await r2.json();
+    const jsonText = (d2.content || [])
+      .filter(b => b.type === 'text').map(b => b.text).join('\n');
+
+    rawBox.textContent = '=== 搜尋原文 ===\n' + rawInfo + '\n\n=== JSON 轉換結果 ===\n' + jsonText;
+
+    let thisWeek = [], nextWeek = [];
+    const parsed = extractJSON(jsonText);
+    if (parsed) {
+      thisWeek = parsed.this_week || [];
+      nextWeek = parsed.next_week || [];
+    }
+
+    tourResults.innerHTML =
+      `<div class="section-label">本週（${thisStart} – ${thisEnd}）</div>` +
+      renderCards(thisWeek) +
+      `<div class="section-label" style="margin-top:24px">下週（${nextStart} – ${nextEnd}）</div>` +
+      renderCards(nextWeek, true);
+    resultArea.style.display = 'block';
+
+  } catch (err) {
+    tourResults.innerHTML = `<div class="error-box">
+      搜尋失敗：${err.message}<br>
+      <small>請確認網路連線，或至各機構官網直接查詢。</small>
+    </div>`;
+    resultArea.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    spinner.style.display = 'none';
+    btnText.textContent = '🔄 重新搜尋';
+  }
+}
+</script>
+</body>
+</html>

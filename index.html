@@ -94,10 +94,10 @@ h1 {
   margin-bottom: 12px;
   border-left: 4px solid #1565C0;
 }
-.tour-card.green { border-left-color: #2E7D32; }
+.tour-card.green  { border-left-color: #2E7D32; }
 .tour-card.orange { border-left-color: #E65100; }
 .tour-card.purple { border-left-color: #6A1B9A; }
-.tour-card.teal { border-left-color: #00695C; }
+.tour-card.teal   { border-left-color: #00695C; }
 
 .tour-org {
   font-size: 12px;
@@ -105,10 +105,10 @@ h1 {
   color: #1565C0;
   margin-bottom: 4px;
 }
-.tour-card.green .tour-org { color: #2E7D32; }
+.tour-card.green  .tour-org { color: #2E7D32; }
 .tour-card.orange .tour-org { color: #E65100; }
 .tour-card.purple .tour-org { color: #6A1B9A; }
-.tour-card.teal .tour-org { color: #00695C; }
+.tour-card.teal   .tour-org { color: #00695C; }
 
 .tour-title {
   font-size: 15px;
@@ -132,7 +132,7 @@ h1 {
   color: #555;
 }
 .meta-tag.date { background: #E3F2FD; border-color: #90CAF9; color: #1565C0; }
-.meta-tag.fee { background: #E8F5E9; border-color: #A5D6A7; color: #2E7D32; }
+.meta-tag.fee  { background: #E8F5E9; border-color: #A5D6A7; color: #2E7D32; }
 .meta-tag.fee.paid { background: #FFF3E0; border-color: #FFCC80; color: #E65100; }
 
 .tour-note {
@@ -150,9 +150,7 @@ h1 {
   color: #6D4C41;
 }
 
-.always-on {
-  margin-top: 28px;
-}
+.always-on { margin-top: 28px; }
 .always-card {
   background: #F3E5F5;
   border: 1px solid #CE93D8;
@@ -238,6 +236,10 @@ footer {
 <footer>資料由 AI 即時搜尋整理，活動詳情以各主辦單位公告為準</footer>
 
 <script>
+// ─── 唯一需要修改的地方：填入你的 Cloudflare Worker 網址 ─────────────────
+const PROXY_URL = 'https://daan-tour-proxy.YOUR_SUBDOMAIN.workers.dev';
+// ──────────────────────────────────────────────────────────────────────────
+
 function getWeekRange() {
   const now = new Date();
   const day = now.getDay();
@@ -249,42 +251,33 @@ function getWeekRange() {
   nextMon.setDate(mon.getDate() + 7);
   const nextSun = new Date(mon);
   nextSun.setDate(mon.getDate() + 13);
-  const fmt = d => `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+  const fmt = d =>
+    `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
   return {
     thisStart: fmt(mon), thisEnd: fmt(sun),
-    nextStart: fmt(nextMon), nextEnd: fmt(nextSun)
+    nextStart: fmt(nextMon), nextEnd: fmt(nextSun),
   };
 }
 
 const { thisStart, thisEnd, nextStart, nextEnd } = getWeekRange();
-document.getElementById('week-range').textContent = `本週 ${thisStart}（一）至 ${thisEnd}（日）｜下週 ${nextStart}（一）至 ${nextEnd}（日）`;
+document.getElementById('week-range').textContent =
+  `本週 ${thisStart}（一）至 ${thisEnd}（日）｜下週 ${nextStart}（一）至 ${nextEnd}（日）`;
 
 function toggleRaw() {
   const box = document.getElementById('raw-box');
   const toggle = document.querySelector('.raw-toggle');
-  if (box.style.display === 'none' || !box.style.display) {
-    box.style.display = 'block';
-    toggle.textContent = '▾ 收起原始回覆';
-  } else {
-    box.style.display = 'none';
-    toggle.textContent = '▸ 查看 AI 原始回覆';
-  }
+  const collapsed = box.style.display === 'none' || !box.style.display;
+  box.style.display = collapsed ? 'block' : 'none';
+  toggle.textContent = collapsed ? '▾ 收起原始回覆' : '▸ 查看 AI 原始回覆';
 }
 
 const COLOR_MAP = {
-  '荒野': 'green',
-  '荒野保護協會': 'green',
-  '蝶會': 'orange',
-  '蝴蝶': 'orange',
-  '鳥會': 'teal',
-  '野鳥': 'teal',
-  '猛禽': 'teal',
-  '基金會': 'blue',
-  '之友': 'blue',
-  '蜻蜓': 'purple',
-  '兩棲': 'purple',
-  '螢火蟲': 'green',
-  '螢': 'green',
+  '荒野': 'green', '荒野保護協會': 'green',
+  '蝶會': 'orange', '蝴蝶': 'orange',
+  '鳥會': 'teal', '野鳥': 'teal', '猛禽': 'teal',
+  '基金會': 'blue', '之友': 'blue',
+  '蜻蜓': 'purple', '兩棲': 'purple',
+  '螢火蟲': 'green', '螢': 'green',
 };
 
 function getColor(org) {
@@ -308,9 +301,9 @@ function renderCards(tours, isNextWeek = false) {
       <div class="tour-org">${t.org || '主辦單位'}</div>
       <div class="tour-title">${t.title || '導覽活動'}</div>
       <div class="tour-meta">
-        ${t.date ? `<span class="meta-tag date">📅 ${t.date}</span>` : ''}
-        ${t.time ? `<span class="meta-tag">🕐 ${t.time}</span>` : ''}
-        ${t.fee ? `<span class="meta-tag ${feeClass}">💰 ${t.fee}</span>` : ''}
+        ${t.date   ? `<span class="meta-tag date">📅 ${t.date}</span>` : ''}
+        ${t.time   ? `<span class="meta-tag">🕐 ${t.time}</span>` : ''}
+        ${t.fee    ? `<span class="meta-tag ${feeClass}">💰 ${t.fee}</span>` : ''}
         ${t.signup ? `<span class="meta-tag">📝 ${t.signup}</span>` : ''}
       </div>
       ${t.note ? `<div class="tour-note">${t.note}</div>` : ''}
@@ -318,13 +311,43 @@ function renderCards(tours, isNextWeek = false) {
   }).join('');
 }
 
+// 呼叫 Proxy（不帶 API key，key 在 Worker 裡）
+async function callProxy(payload) {
+  const resp = await fetch(PROXY_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!resp.ok) {
+    const errText = await resp.text();
+    throw new Error(`Proxy 回傳錯誤 ${resp.status}: ${errText}`);
+  }
+  return resp.json();
+}
+
+function extractJSON(text) {
+  const clean = text.replace(/```json|```/g, '').trim();
+  let depth = 0, start = -1;
+  for (let i = 0; i < clean.length; i++) {
+    if (clean[i] === '{') { if (depth === 0) start = i; depth++; }
+    else if (clean[i] === '}') {
+      depth--;
+      if (depth === 0 && start !== -1) {
+        try { return JSON.parse(clean.slice(start, i + 1)); } catch(e) {}
+        start = -1;
+      }
+    }
+  }
+  return null;
+}
+
 async function searchTours() {
-  const btn = document.getElementById('search-btn');
-  const spinner = document.getElementById('spinner');
-  const btnText = document.getElementById('btn-text');
+  const btn       = document.getElementById('search-btn');
+  const spinner   = document.getElementById('spinner');
+  const btnText   = document.getElementById('btn-text');
   const resultArea = document.getElementById('result-area');
   const tourResults = document.getElementById('tour-results');
-  const rawBox = document.getElementById('raw-box');
+  const rawBox    = document.getElementById('raw-box');
 
   btn.disabled = true;
   spinner.style.display = 'block';
@@ -351,7 +374,7 @@ async function searchTours() {
 
 請用純文字列出找到的所有活動，每筆請標明是本週或下週，並包含：主辦單位、活動名稱、日期時間、費用、報名方式。若找不到特定場次就說找不到。`;
 
-  const formatPrompt = (rawInfo) => `根據以下搜尋結果，整理成 JSON。
+  const formatPrompt = rawInfo => `根據以下搜尋結果，整理成 JSON。
 只輸出 JSON 物件，不要任何前後說明文字，不要 markdown code block。
 
 搜尋結果：
@@ -362,49 +385,23 @@ ${rawInfo}
 
 本週活動放入 this_week，下週活動放入 next_week。若某週無活動則該陣列為空 []。`;
 
-  function extractJSON(text) {
-    const clean = text.replace(/```json|```/g, '').trim();
-    let depth = 0, start = -1;
-    for (let i = 0; i < clean.length; i++) {
-      if (clean[i] === '{') { if (depth === 0) start = i; depth++; }
-      else if (clean[i] === '}') {
-        depth--;
-        if (depth === 0 && start !== -1) {
-          try { return JSON.parse(clean.slice(start, i + 1)); } catch(e) {}
-          start = -1;
-        }
-      }
-    }
-    return null;
-  }
-
   try {
     btnText.textContent = '第一步：搜尋活動資訊...';
-    const r1 = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1500,
-        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-        messages: [{ role: 'user', content: searchPrompt }]
-      })
+    const d1 = await callProxy({
+      model: 'claude-sonnet-4-5',
+      max_tokens: 1500,
+      tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+      messages: [{ role: 'user', content: searchPrompt }],
     });
-    const d1 = await r1.json();
     const rawInfo = (d1.content || [])
       .filter(b => b.type === 'text').map(b => b.text).join('\n');
 
     btnText.textContent = '第二步：整理資料格式...';
-    const r2 = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: formatPrompt(rawInfo) }]
-      })
+    const d2 = await callProxy({
+      model: 'claude-sonnet-4-5',
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: formatPrompt(rawInfo) }],
     });
-    const d2 = await r2.json();
     const jsonText = (d2.content || [])
       .filter(b => b.type === 'text').map(b => b.text).join('\n');
 
